@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Jupiter</title>
+
+<link rel="icon" type="image/png" href="https://login.jupitered.com/media/icon_jupiter_32.png">
+<link href="./Jupiter_files/1.css" rel="stylesheet">
+<link href="./Jupiter_files/1_chrome.css" rel="stylesheet">
+<link href="./Jupiter_files/blue.css" rel="stylesheet">
+<script>
+touch=0;
+mini=0;
+platform='Win';
+browser='Chrome';
+</script>
+<script src="./Jupiter_files/1.js.下载"></script>
+<script src="./Jupiter_files/2.js.下载"></script>
+<script>
+timedif=now(true)-1729389658;
+</script>
+<meta name="description" content="Learning Management System, Gradebook, and Student Information System for K-12 and higher ed. Jupiter is used in all 50 states for 4 million students.">
+<script>
+
+alertpersist=0;  // don't erase warning message when changing tabs, exept after attempted Login
+timedif=now(true)-1729389658;
+
+function gologin(x) {
+	postval('doit',x);
+	gopost('../login/index.php');
+}
+
+function clicktab(t,init) {
+	if(!t) t=self.tab1 || clickval;
+	if(t==loginpage) return;
+		loginpage=t;
+	postval('loginpage',loginpage);
+	outtabs();
+	// nav tabs
+	setviz('signuptab', loginpage=='staff', 'errok');
+	setviz('edstoretab', loginpage=='staff', 'errok');
+	setviz('helptab', loginpage=='staff', 'errok');
+	setviz('videotab', loginpage=='student' || loginpage=='parent', 'errok');
+	// form
+	setviz('showstudid', loginpage=='student' || loginpage=='parent');
+	setviz('showschool', loginpage=='student' || loginpage=='parent');
+	setviz('showusername', loginpage=='staff' || loginpage=='ta');
+	setviz('showtimeout', loginpage=='staff');
+	setviz('showaccess', loginpage=='ta');
+	setviz('showpassword', loginpage!='sub');
+	setviz('showsubcode', loginpage=='sub');
+	// buttons
+	setviz('showforgotstaff', loginpage=='staff');
+	setviz('showforgotstud', loginpage=='student' || loginpage=='parent');
+	el('loginbtn').style.minWidth=(loginpage=='staff' || mini)? '85px':'100px';
+	// labels
+	sethtml('ph_username1', (loginpage=='ta')? "Teacher's Username":"Username");
+	sethtml('ph_studid1', (loginpage=='student')? "Name or ID":"Student's Name or ID");
+	sethtml('ph_password1', (loginpage=='student' || loginpage=='parent')? "Password":"Password");
+	sethtml('loginbtn', (loginpage=='student' || loginpage=='parent')? "Login":"Login");
+
+	if(!touchos) {
+		if(val('username1')=='' && (loginpage=='staff' || loginpage=='ta')) focus('username1',true);
+		else if(val('studid1')=='' && (loginpage=='student' || loginpage=='parent')) focus('studid1',true);
+		else if(t=='sub' && val('subcode')=='') focus('subcode',1);
+		else if(val('text_password1')=='') focusp('password1',2);
+	}
+	if(!init && !alertpersist) err();
+}
+
+overtab0=0;
+function selstart() {
+	offset=clickx-el('tabspace').getBoundingClientRect().left;
+}
+function selmove() {
+	var x=dragx+offset;
+	for(var t=5; t>=2; t--)
+		if(x>=tablefts[tabs[t]]+3) break;
+	if(t==overtab0) return;
+	overtab0=t;
+	clicktab(tabs[t]);
+}
+
+function checkform(w) {  // w: null=onreturn, 1=forgot, 2=login btn, send, code
+	alertpersist=false;
+	// two factor authentication
+	if(w=='tfa') {
+		if(!val('tfacode1')) return err('tfacode1');
+		loginpage='staff';
+	}
+	// student/parent
+	else if(loginpage=='student' || loginpage=='parent') {
+		var school1=val('school1');
+		if(!school1) {
+			if(!w) return focus('school1');
+			else return err('school1', "Enter your school");
+		}
+		if(school1[0]!=' ') {
+			if(!val('city1')) return err('city1', "Enter the city where your school is");
+			if(!val('region1')) return err('region1');
+		}
+		if(w!=1) {
+			if(val('studid1')=='') return err('studid1', (loginpage=='student')?"Enter your Name or ID":"Enter student's Name or ID");
+			if(val('text_password1')=='') return err('password1', 'Enter your password');
+		}
+	}
+	// staff
+	else if(loginpage=='staff') {
+		if(w==1) return gopost('../login/forgotstaff.php');
+		if(val('username1')=='') return err('username1', "Enter your username");
+		if(val('text_password1')=='') return err('password1', "Enter your password");
+	}
+	// ta
+	else if(loginpage=='ta') {
+		if(val('username1')=='') return err('username1', "Enter your teacher's username");
+		if(val('text_password1')=='') return err('password1', "Enter your TA password");
+	}
+	// sub
+	else if(loginpage=='sub') {
+		if(val('subcode')=='') return err('subcode', "Enter the 7-character password");
+	}
+	// ok
+	if(w==1) return gologin('forgot');
+	if(loginpage=='sub') return gopost('../0/sub.php');
+	setbusy(1);
+	setTimeout(function() {
+		postval('timestamp',now(true)-timedif);
+		gologin('check'+loginpage);
+	},0);
+}
+
+function changeschool() {
+	setviz('showcity', val('school1',true).charAt(0)!=' ');  // school# prefixed by space, else write-in
+}
+
+</script>
+<script>
+window.addEventListener('load',function() {
+	setbusy(0);
+	postval('screensize', screen.width+'x'+screen.height);
+});
+</script>
+</head>
+<body>
+<form name="form1" onsubmit="return false" method="post" autocomplete="off">
+<input type="hidden" name="mini" value="0">
+
+<!-- MASTHEAD -->
+<div id="loginbar1"></div>
+<div id="loginlogobg" click="location=&#39;https://jupitered.com/?home=1&#39;">
+	<img src="./Jupiter_files/jupiter_logo_w.svg" height="36">
+</div>
+<div id="rightnav" style="top:2px">
+<div class="tabarea" click="gologin(&#39;changelanguage&#39;)"><div class="tab">Español</div></div><div id="signuptab" class="hide tabarea" click="gopost(&#39;../signup/&#39;)"><div class="tab">Signup</div></div><div id="edstoretab" class="hide tabarea" click="gopost(&#39;../edstore/&#39;)"><div class="tab">EdStore</div></div><div id="videotab" class="tabarea"><div class="tab"><a class="nou" target="web" href="https://login.jupitered.com/help/video.php?studlogin">Video Tour</a></div></div><div id="helptab" class="hide tabarea" click="gopost(&#39;../help&#39;)"><div class="tab">Help</div></div><div class="tabarea" click="location=&#39;https://jupitered.com/privacy.html&#39;"><div class="tab">Privacy</div></div><div class="tabarea"><div class="tab"><a class="nou" target="web" href="https://jupitered.com/?home=1">About</a></div></div></div>
+
+
+
+<!-- BUSY SIGNAL -->
+<div id="busy" class="hide null">
+	<div id="busymsg1" class="big">Loading</div>
+	<div id="busybar"><div id="busydot"></div></div>
+</div>
+
+<div id="screen" class="" style="padding-bottom:20px">
+<input type="hidden" name="from" value="login">
+<input type="hidden" name="language" value="eng">
+<input type="hidden" name="loginpage" value="student">
+
+<style>
+.logintab {display:inline-block; position:relative; padding:4px 12px;}
+</style>
+
+<!-- TABS -->
+<div class="whitebox" style="padding:12px 0px; margin:160px auto 0px auto; transform:scale(1.6); transform-origin:50% 0px;">
+<div id="showlogin">
+<div id="tabspace" class="btncolor" click="clicktab()" dragstart="selstart()" dragmove="selmove()" onmouseout="outtabs()" ontouchstart="event.preventDefault()" style="position:relative; border-radius:12px; display:table; margin:0px 20px; padding:0px 6px;">
+	<div id="tabselector" style="position: absolute; top: 0px; left: 0px; height: 24px; border-radius: 12px; width: 78px; transition-property: left, width; transition-duration: 0.2s;" class="sellit"></div>
+	      <div id="tab_student" class="logintab" onmouseover="overtab(this)" val="student" style="width: 66px;">Student	</div><div id="tab_parent" class="logintab" onmouseover="overtab(this)" val="parent" style="width: 60px;">Parent	</div><div id="tab_sub" class="logintab" onmouseover="overtab(this)" val="sub" style="width: 46px;">Sub
+	</div><div id="tab_ta" class="logintab" onmouseover="overtab(this)" val="ta" style="width: 39px;">TA
+	</div><div id="tab_staff" class="logintab" onmouseover="overtab(this)" val="staff" style="width: 49px;">Staff
+	</div>
+</div>
+
+<!-- ALERT -->
+<div id="showalert" class="accordionclosed">
+	<div id="alert" class="alert center rad12" style="display:table; width:272px; margin:12px auto 0px auto;"></div>
+</div>
+
+<!-- PROMPT -->
+<div style="display:table; margin:20px auto 0px auto;">
+<!--///<input name=username autocomplete=username class=hide onchange="autofilluser()">-->
+<div id="showusername" class="hide null">
+<script> textbox('username1',"",190,{placeholder:'Username', limit:32, spellcheck:0, onreturn:"focusp('password1')", tabdef:1},0,1) </script><input type="hidden" name="username1" value="">
+<div class="textboxp1">
+	<div id="ph_username1" class="placeholder">Username</div>
+	<div id="text_username1" class="textboxp2" contenteditable="" tabdef="" spellcheck="false" autocapitalize="none" autocorrect="off" autocomplete="username" limit="32" doreturn="focusp(&#39;password1&#39;)" ph="1" style="width:188px;height:16px;"></div>
+</div>
+</div>
+<div id="showstudid" class="null">
+<script> textbox('studid1',"",190,{placeholder:'Student Name or ID', limit:100, spellcheck:0, onreturn:"focusp('password1')", tabdef:1},0,1) </script><input type="hidden" name="studid1" value="">
+<div class="textboxp1">
+	<div id="ph_studid1" class="placeholder">Name or ID</div>
+	<div id="text_studid1" class="textboxp2" contenteditable="" tabdef="" spellcheck="false" autocapitalize="none" autocorrect="off" autocomplete="off" limit="100" doreturn="focusp(&#39;password1&#39;)" ph="1" style="width:188px;height:16px;"></div>
+</div>
+</div>
+<div id="showpassword" class="null">
+<div style="height:10px"></div>
+<script> textbox('password1',"",190,{placeholder:'Password', type:'password', onreturn:'checkform()'},0,1) </script><div class="textboxp1">
+	<div id="ph_password1" class="placeholder">Password</div>
+	<input type="password" class="password" id="text_password1" name="text_password1" value="" spellcheck="false" autocapitalize="none" autocorrect="off" autocomplete="current-password" doreturn="checkform()" ph="1" style="width:188px;height:16px;" maxlength="32" tabdef="">
+</div>
+</div>
+<div id="showsubcode" class="hide null">
+Substitute Teacher<br>
+<script> textbox('subcode',"",100,{placeholder:'Password', limit:8, onreturn:'checkform()'},0,1) </script><input type="hidden" name="subcode" value="">
+<div class="textboxp1">
+	<div id="ph_subcode" class="placeholder">Password</div>
+	<div id="text_subcode" class="textboxp2" contenteditable="" limit="8" doreturn="checkform()" ph="1" style="width:98px;height:16px;"></div>
+</div>
+</div>
+<div style="height:10px"></div>
+<div id="showtimeout" class="hide null">
+<script> menu('timeoutin1',"5","",[
+	["0","Stay logged in"],
+	["5","Lock screen if idle 5 minutes"],
+	["10","Lock screen if idle 10 minutes"],
+	["15","Lock screen if idle 15 minutes"],
+	["20","Lock screen if idle 20 minutes"],
+	["30","Lock screen if idle 30 minutes"],
+	["45","Lock screen if idle 45 minutes"],
+	["60","Lock screen if idle 60 minutes"],
+],{width:190},0,1) </script><input type="hidden" name="timeoutin1" value="5"><div class="menuspace">
+	<div id="timeoutin1_closed" class="menuclosed">
+		<div click="popmenu(&#39;timeoutin1&#39;)">
+			<svg width="17" height="16" class="menutriangle"><polygon points="5,6 13,6 9,11" class="widgetfill"></polygon></svg>
+			<div id="timeoutin1_label" class="menulabel" style="width:171px">Lock screen if idle 5 minutes</div>
+		</div>
+	</div>
+	<div id="timeoutin1_open" class="menuopenspace"></div>
+</div>
+</div>
+<div id="showaccess" class="hide null">
+<script> menu('access1',"1","",[
+	["1","Access 1: Attendance"],
+	["2","Access 2: Scores"],
+	["3","Access 3: Grades & Reports"],
+	["4","Access 4: Messages & Setup"],
+],{width:190},0,1) </script><input type="hidden" name="access1" value="1"><div class="menuspace">
+	<div id="access1_closed" class="menuclosed">
+		<div click="popmenu(&#39;access1&#39;)">
+			<svg width="17" height="16" class="menutriangle"><polygon points="5,6 13,6 9,11" class="widgetfill"></polygon></svg>
+			<div id="access1_label" class="menulabel" style="width:171px">Access 1: Attendance</div>
+		</div>
+	</div>
+	<div id="access1_open" class="menuopenspace"></div>
+</div>
+</div>
+<div id="showschool" style="width:190px" class="null"> <!-- width for webkit bug -->
+<script> textbox('school1',"",190,{placeholder:'School', limit:60, spellcheck:0},0,1) </script><input type="hidden" name="school1" value="">
+<div class="textboxp1">
+	<div id="ph_school1" class="placeholder">School</div>
+	<div id="text_school1" class="textboxp2" contenteditable="" spellcheck="false" autocapitalize="none" autocorrect="off" autocomplete="off" limit="60" ph="1" style="width:188px;height:16px;"></div>
+</div>
+<br>
+<div id="showcity" class="accordion">
+<script> textbox('city1',"",190,{placeholder:'City', limit:32, onreturn:'checkform()'},0,1) </script><input type="hidden" name="city1" value="">
+<div class="textboxp1">
+	<div id="ph_city1" class="placeholder">City</div>
+	<div id="text_city1" class="textboxp2" contenteditable="" limit="32" doreturn="checkform()" ph="1" style="width:188px;height:16px;"></div>
+</div>
+<br><script> menu('region1',"","",[
+	["us_al","Alabama"],
+	["us_ak","Alaska"],
+	["us_az","Arizona"],
+	["us_ar","Arkansas"],
+	["us_ca","California"],
+	["us_co","Colorado"],
+	["us_ct","Connecticut"],
+	["us_de","Delaware"],
+	["us_dc","District of Columbia"],
+	["us_fl","Florida"],
+	["us_ga","Georgia"],
+	["us_hi","Hawaii"],
+	["us_id","Idaho"],
+	["us_il","Illinois"],
+	["us_in","Indiana"],
+	["us_ia","Iowa"],
+	["us_ks","Kansas"],
+	["us_ky","Kentucky"],
+	["us_la","Louisiana"],
+	["us_me","Maine"],
+	["us_md","Maryland"],
+	["us_ma","Massachusetts"],
+	["us_mi","Michigan"],
+	["us_mn","Minnesota"],
+	["us_ms","Mississippi"],
+	["us_mo","Missouri"],
+	["us_mt","Montana"],
+	["us_ne","Nebraska"],
+	["us_nv","Nevada"],
+	["us_nh","New Hampshire"],
+	["us_nj","New Jersey"],
+	["us_nm","New Mexico"],
+	["us_ny","New York"],
+	["us_nc","North Carolina"],
+	["us_nd","North Dakota"],
+	["us_oh","Ohio"],
+	["us_ok","Oklahoma"],
+	["us_or","Oregon"],
+	["us_pa","Pennsylvania"],
+	["us_ri","Rhode Island"],
+	["us_sc","South Carolina"],
+	["us_sd","South Dakota"],
+	["us_tn","Tennessee"],
+	["us_tx","Texas"],
+	["us_ut","Utah"],
+	["us_vt","Vermont"],
+	["us_va","Virginia"],
+	["us_wa","Washington"],
+	["us_wv","West Virginia"],
+	["us_wi","Wisconsin"],
+	["us_wy","Wyoming"],
+	null,
+	["ca_ab","Alberta"],
+	["ca_bc","British Columbia"],
+	["ca_mb","Manitoba"],
+	["ca_nb","New Brunswick"],
+	["ca_nl","Newfoundland & Labrador"],
+	["ca_nt","Northwest Territories"],
+	["ca_ns","Nova Scotia"],
+	["ca_nu","Nunavut"],
+	["ca_on","Ontario"],
+	["ca_pe","Prince Edward Island"],
+	["ca_qc","Quebec"],
+	["ca_sk","Saskatchewan"],
+	["ca_yk","Yukon"],
+	null,
+	["xx_xx","Other"],
+],{width:190, placeholder:'State'},0,1) </script><input type="hidden" name="region1" value=""><div class="menuspace">
+	<div id="region1_closed" class="menuclosed">
+		<div click="popmenu(&#39;region1&#39;)">
+			<div id="ph_region1" class="placeholder">State</div>
+			<svg width="17" height="16" class="menutriangle"><polygon points="5,6 13,6 9,11" class="widgetfill"></polygon></svg>
+			<div id="region1_label" class="menulabel" style="width:171px">&nbsp;</div>
+		</div>
+	</div>
+	<div id="region1_open" class="menuopenspace"></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- BUTTONS -->
+<div style="margin:20px auto 0px auto; width:272px; height:24px; position:relative;">
+	<div id="showforgotstaff" class="hide null">
+		<script> btn("Help Me Login","checkform(1)",{gap:0},0,1) </script><div class="btn" click="clickbtn()" script="checkform(1)">Help Me Login</div>
+	</div>
+	<div id="showforgotstud" class="null">
+		<script> btn("Help Me Login","checkform(1)",{gap:0},0,1) </script><div class="btn" click="clickbtn()" script="checkform(1)">Help Me Login</div>
+	</div>
+	<div style="position:absolute; top:0px; right:0px;">
+		<script> btn("Login","checkform(2)",{gap:0, width:100, id:'loginbtn'},0,1) </script><div id="loginbtn" class="btn" click="clickbtn()" script="checkform(2)" style="min-width:100px;">Login</div>
+	</div>
+</div>
+
+</div>  <!-- showlogin -->
+
+
+
+
+</div>  <!-- whitebox -->
+
+
+<script>
+loginpage='';
+
+initlogin();
+
+function initlogin() {
+	tabo=el('tabselector');
+	tabs=[0,'student','parent','sub','ta','staff'];
+	tabwidths=[];
+	tablefts=[];
+	cumw=0;
+
+	for(var n=1; n<=5; n++) {
+		var t=tabs[n];
+		var w=el('tab_'+t).offsetWidth+1;  // rendered as half-pixels but reported as whole pixels, so expand to whole pixels
+		el('tab_'+t).style.width=w+'px';
+		tabwidths[t]=w+(mini?6:12);
+		tablefts[t]=cumw;
+		cumw+=w;
+	}
+
+	setTimeout(function() {
+		tabo.style.transitionProperty="left,width";
+		tabo.style.transitionDuration="0.2s";
+	},1);
+
+	clicktab('student',true);
+
+	
+	// alert if cookies or local storage disabled
+	msg='';
+	savecookie('cookieok',1);
+	if(!cookie('cookieok'))
+		msg="Jupiter works better if you enable Cookies.";
+	else {
+		savecookie('cookieok','');
+		savelocal('localok',1);
+		if(!getlocal('localok'))
+			msg="Jupiter works better if you enable Local Data.";
+		else savelocal('localok','');
+	}
+	// alert if plugins
+	if(!msg && jsscan()) {
+		msg="You should disable your browser plugins:";
+		for(src in jsplugins) msg+="<br>"+src;
+	}
+	if(msg) {
+		alert0=gethtml('alert','errok');
+		if(alert0.indexOf('Add to Home')>0)
+			sethtml('alert',msg+'<p>'+alert0);
+		else if(!alert0) {
+			sethtml('alert',msg,'errok');
+			setviz('showalert',1,'errok');
+		}
+	}
+}
+
+function overtab(o) {
+		tab1=o.getAttribute('val');
+	tabo.className='selhi';
+	tabo.style.width=tabwidths[tab1]+'px';
+	tabo.style.left=tablefts[tab1]+'px';
+}
+
+function outtabs() {
+	tabo.className='sellit';
+	tabo.style.width=tabwidths[loginpage]+'px';
+	tabo.style.left=tablefts[loginpage]+'px';
+}
+
+/*///
+function autofilluser() {
+	var u=val('username');
+	var p=val('text_password1');
+	logcon('autofill "'+u+'" '+(p?'w pw':'no pw'));///
+	if(!u) return;
+	if(p || !val('username1')) settext('username1',u);
+	if(p || !val('studid1')) settext('studid1',u);
+}
+setTimeout(autofilluser);
+setTimeout(autofilluser,500);
+*/
+
+</script>
+
+</div><input type="hidden" name="jsscripts" value="&lt;br&gt;plugin: PDF Viewer&lt;br&gt;plugin: Chromium PDF Viewer&lt;br&gt;plugin: Microsoft Edge PDF Viewer">
+  <!-- screen -->
+<input type="hidden" name="pagecomplete" value="1">
+
+<!-- OFFLINE WARNING -->
+<div id="offlinealert" class="offlinealertclosed" style="top:0px; height:32px; min-width:175px; padding:8px 20px 8px 15px; border-radius:16px 0px 0px 16px; transition:right .2s ease;">
+		<span id="offlinelost"></span>
+	</div>
+
+<input type="hidden" name="screensize" value="1494x934">
+</form>
+
+
+<script>
+if(self.jsscan) jsscan();
+</script>
+</body></html>
